@@ -20,7 +20,7 @@ RUN set -ex;                                 \
   cd openfortivpn-1.17.3;                    \
   cat /patches/* | patch -p1;                \
   ./autogen.sh;                              \
-  ./configure;                               \
+  ./configure --prefix="";                   \
   make;
 
 FROM ubuntu:20.04
@@ -31,7 +31,9 @@ RUN set -ex;                                 \
     ca-certificates                          \
     openssl                                  \
     ppp;                                     \
-  rm -rf /var/lib/apt/lists/*;
+  rm -rf /var/lib/apt/lists/*;               \
+  mkdir -p /etc/openfortivpn;                \
+  touch /etc/openfortivpn/config;
 
 COPY --from=openfortivpn /openfortivpn-1.17.3/openfortivpn /usr/bin/openfortivpn
 ENTRYPOINT ["openfortivpn", "--svpn-cookie", "-"]
