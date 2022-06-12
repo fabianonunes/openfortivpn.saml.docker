@@ -53,15 +53,14 @@ class Browser:
             return
         mr = webview.get_main_resource()
         uri = mr.get_uri()
-        self.cookie_manager.get_cookies(uri, None, on_get_cookie)
+        self.cookie_manager.get_cookies(uri, None, self.on_get_cookie)
 
-
-def on_get_cookie(cookie_manager, result):
-    f = cookie_manager.get_cookies_finish(result)
-    cookies = {c.name: c.value for c in f}
-    if args.cookie in cookies:
-        print("{}={}".format(args.cookie, cookies[args.cookie]))
-        Gtk.main_quit()
+    def on_get_cookie(self, cookie_manager, result):
+        f = cookie_manager.get_cookies_finish(result)
+        cookies = {c.name: c.value for c in f}
+        if args.cookie in cookies:
+            print("{}={}".format(args.cookie, cookies[args.cookie]))
+            Gtk.main_quit()
 
 
 if __name__ == "__main__":
