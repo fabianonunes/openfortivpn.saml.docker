@@ -36,4 +36,5 @@ RUN set -ex;                                 \
   touch /etc/openfortivpn/config;
 
 COPY --from=openfortivpn /openfortivpn-1.17.3/openfortivpn /usr/bin/openfortivpn
-ENTRYPOINT ["openfortivpn", "--svpn-cookie", "-"]
+#ENTRYPOINT ["openfortivpn", "--svpn-cookie", "-"]
+ENTRYPOINT ["openfortivpn"]
