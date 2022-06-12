@@ -23,8 +23,8 @@ class Browser:
         Gtk.init(None)
         self.window = Gtk.Window()
         self.window.set_title("Login")
-        self.window.connect("delete-event", Gtk.main_quit)
-        self.window.resize(475, 680)
+        self.window.connect("delete-event", self.quit)
+        self.window.resize(450, 560)
 
         ctx = WebKit2.WebContext.get_default()
         cookie_storage_path = path.expanduser("~/.cache/openfortivpn-2fa")
@@ -36,7 +36,6 @@ class Browser:
         )
 
         web_view = WebKit2.WebView()
-        web_view.set_zoom_level(1.2)
         web_view.connect("load-changed", self.page_changed)
         web_view.load_uri(args.url)
 
