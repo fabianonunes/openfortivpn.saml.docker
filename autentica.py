@@ -9,11 +9,11 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("WebKit2", "4.0")
 from gi.repository import Gtk, WebKit2
 
-COOKIE_NAME = "SVPNCOOKIE"
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--url', required=True)
+parser.add_argument('--cookie', default='SVPNCOOKIE')
 args = parser.parse_args()
+
 
 class Browser:
     window = None
@@ -59,8 +59,8 @@ class Browser:
 def on_get_cookie(cookie_manager, result):
     f = cookie_manager.get_cookies_finish(result)
     cookies = {c.name: c.value for c in f}
-    if COOKIE_NAME in cookies:
-        print("{}={}".format(COOKIE_NAME, cookies[COOKIE_NAME]))
+    if args.cookie in cookies:
+        print("{}={}".format(args.cookie, cookies[args.cookie]))
         Gtk.main_quit()
 
 
