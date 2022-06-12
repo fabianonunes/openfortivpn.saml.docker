@@ -34,4 +34,4 @@ RUN set -ex;                                 \
   rm -rf /var/lib/apt/lists/*;
 
 COPY --from=openfortivpn /openfortivpn-1.17.3/openfortivpn /usr/bin/openfortivpn
-ENTRYPOINT ["openfortivpn", "-c", "/vpn/config.cfg", "--svpn-cookie", "-"]
+ENTRYPOINT ["openfortivpn", "--svpn-cookie", "-"]
