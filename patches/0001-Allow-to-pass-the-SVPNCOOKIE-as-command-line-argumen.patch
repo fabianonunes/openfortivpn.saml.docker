@@ -1,0 +1,302 @@
+From b59b40c2d7deef51edbc5c754bb37b81229c28d0 Mon Sep 17 00:00:00 2001
+From: Gabriele Mazzotta <g.mazzotta@localhost>
+Date: Sat, 26 Mar 2022 12:05:41 +0100
+Subject: [PATCH] Allow to pass the SVPNCOOKIE as command-line argument
+
+This also allows to pass the cookie through stdin, making it easy
+to chain multiple commands.
+---
+ src/config.c    |  9 +++++++++
+ src/config.h    |  1 +
+ src/http.c      | 10 +++++++---
+ src/http.h      |  1 +
+ src/main.c      | 42 ++++++++++++++++++++++++++++++++++++++++--
+ src/tunnel.c    | 22 ++++++++++++++++------
+ src/userinput.c | 19 +++++++++++++++++++
+ src/userinput.h |  2 ++
+ 8 files changed, 95 insertions(+), 11 deletions(-)
+
+diff --git a/src/config.c b/src/config.c
+index 2592a22..21ce0d7 100644
+--- a/src/config.c
++++ b/src/config.c
+@@ -50,6 +50,7 @@ const struct vpn_config invalid_cfg = {
+ 	.otp_prompt = NULL,
+ 	.otp_delay = -1,
+ 	.no_ftm_push = -1,
++	.svpn_cookie = NULL,
+ 	.pinentry = NULL,
+ 	.realm = {'\0'},
+ 	.iface_name = {'\0'},
+@@ -259,6 +260,9 @@ int load_config(struct vpn_config *cfg, const char *filename)
+ 			strncpy(cfg->password, val, PASSWORD_SIZE);
+ 			cfg->password[PASSWORD_SIZE] = '\0';
+ 			cfg->password_set = 1;
++		} else if (strcmp(key, "svpn-cookie") == 0) {
++			free(cfg->svpn_cookie);
++			cfg->svpn_cookie = strdup(val);
+ 		} else if (strcmp(key, "otp") == 0) {
+ 			strncpy(cfg->otp, val, OTP_SIZE);
+ 			cfg->otp[OTP_SIZE] = '\0';
+@@ -475,6 +479,7 @@ void destroy_vpn_config(struct vpn_config *cfg)
+ {
+ 	free(cfg->otp_prompt);
+ 	free(cfg->pinentry);
++	free(cfg->svpn_cookie);
+ #if HAVE_USR_SBIN_PPPD
+ 	free(cfg->pppd_log);
+ 	free(cfg->pppd_plugin);
+@@ -518,6 +523,10 @@ void merge_config(struct vpn_config *dst, struct vpn_config *src)
+ 		dst->otp_delay = src->otp_delay;
+ 	if (src->no_ftm_push != invalid_cfg.no_ftm_push)
+ 		dst->no_ftm_push = src->no_ftm_push;
++	if (src->svpn_cookie != invalid_cfg.svpn_cookie) {
++		free(dst->svpn_cookie);
++		dst->svpn_cookie = src->svpn_cookie;
++	}
+ 	if (src->pinentry) {
+ 		free(dst->pinentry);
+ 		dst->pinentry = src->pinentry;
+diff --git a/src/config.h b/src/config.h
+index f7783e1..c5688bf 100644
+--- a/src/config.h
++++ b/src/config.h
+@@ -90,6 +90,7 @@ struct vpn_config {
+ 	char		password[PASSWORD_SIZE + 1];
+ 	int		password_set;
+ 	char		otp[OTP_SIZE + 1];
++	char		*svpn_cookie;
+ 	char		*otp_prompt;
+ 	unsigned int	otp_delay;
+ 	int		no_ftm_push;
+diff --git a/src/http.c b/src/http.c
+index 855ee97..66b7926 100644
+--- a/src/http.c
++++ b/src/http.c
+@@ -410,12 +410,16 @@ end:
+
+ static int get_auth_cookie(struct tunnel *tunnel, char *buf, uint32_t buffer_size)
+ {
+-	int ret = 0;
+ 	const char *line;
+
+-	ret = ERR_HTTP_NO_COOKIE;
+-
+ 	line = find_header(buf, "Set-Cookie: ", buffer_size);
++	return auth_set_cookie(tunnel, line);
++}
++
++int auth_set_cookie(struct tunnel *tunnel, const char *line)
++{
++	int ret = ERR_HTTP_NO_COOKIE;
++
+ 	if (line) {
+ 		if (strncmp(line, "SVPNCOOKIE=", 11) == 0) {
+ 			if (line[11] == ';' || line[11] == '\0') {
+diff --git a/src/http.h b/src/http.h
+index ec124e9..1cd03bd 100644
+--- a/src/http.h
++++ b/src/http.h
+@@ -58,5 +58,6 @@ int auth_log_in(struct tunnel *tunnel);
+ int auth_log_out(struct tunnel *tunnel);
+ int auth_request_vpn_allocation(struct tunnel *tunnel);
+ int auth_get_config(struct tunnel *tunnel);
++int auth_set_cookie(struct tunnel *tunnel, const char *line);
+
+ #endif
+diff --git a/src/main.c b/src/main.c
+index 1a12e51..6fbf3a7 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -79,6 +79,7 @@
+ "                    [--pinentry=<program>] [--realm=<realm>]\n" \
+ "                    [--ifname=<ifname>] [--set-routes=<0|1>]\n" \
+ "                    [--half-internet-routes=<0|1>] [--set-dns=<0|1>]\n" \
++"                    [--svpn-cookie=<svpn_cookie>]\n" \
+ PPPD_USAGE \
+ "                    " RESOLVCONF_USAGE "[--ca-file=<file>]\n" \
+ "                    [--user-cert=<file>] [--user-key=<file>]\n" \
+@@ -112,6 +113,8 @@ PPPD_USAGE \
+ "                                " SYSCONFDIR "/openfortivpn/config).\n" \
+ "  -u <user>, --username=<user>  VPN account username.\n" \
+ "  -p <pass>, --password=<pass>  VPN account password.\n" \
++"  --svpn-cookie                 A valid SVPNCOOKIE to enstablish the connection.\n" \
++"                                Pass - to have the cookie read from stdin.\n" \
+ "  -o <otp>, --otp=<otp>         One-Time-Password.\n" \
+ "  --otp-prompt=<prompt>         Search for the OTP prompt starting with this string.\n" \
+ "  --otp-delay=<delay>           Wait <delay> seconds before sending the OTP.\n" \
+@@ -189,6 +192,7 @@ int main(int argc, char **argv)
+ 	const char *config_file = SYSCONFDIR "/openfortivpn/config";
+ 	const char *host;
+ 	char *port_str;
++	int read_svpn_cookie_from_stdin = 0;
+
+ 	struct vpn_config cfg = {
+ 		.gateway_host = {'\0'},
+@@ -196,6 +200,7 @@ int main(int argc, char **argv)
+ 		.username = {'\0'},
+ 		.password = {'\0'},
+ 		.password_set = 0,
++		.svpn_cookie = NULL,
+ 		.otp = {'\0'},
+ 		.otp_prompt = NULL,
+ 		.otp_delay = 0,
+@@ -252,6 +257,7 @@ int main(int argc, char **argv)
+ 		{"otp",                  required_argument, NULL, 'o'},
+ 		{"otp-prompt",           required_argument, NULL, 0},
+ 		{"otp-delay",            required_argument, NULL, 0},
++		{"svpn-cookie",          required_argument, NULL, 0},
+ 		{"no-ftm-push",          no_argument, &cli_cfg.no_ftm_push, 1},
+ 		{"ifname",               required_argument, NULL, 0},
+ 		{"set-routes",	         required_argument, NULL, 0},
+@@ -509,6 +515,15 @@ int main(int argc, char **argv)
+ 				cli_cfg.set_dns = set_dns;
+ 				break;
+ 			}
++			if (strcmp(long_options[option_index].name,
++			           "svpn-cookie") == 0) {
++				if (strcmp(optarg, "-") == 0) {
++					read_svpn_cookie_from_stdin = 1;
++				} else {
++					cli_cfg.svpn_cookie = strdup(optarg);
++				}
++				break;
++			}
+ 			goto user_error;
+ 		case 'h':
+ 			printf("%s%s%s%s%s%s%s", usage, summary,
+@@ -548,6 +563,29 @@ int main(int argc, char **argv)
+ 	if (optind < argc - 1 || optind > argc)
+ 		goto user_error;
+
++	if (read_svpn_cookie_from_stdin) {
++		char cookie[COOKIE_SIZE + 1];
++		int bytes_read;
++		char *new_line_character;
++
++		bytes_read = read(0, cookie, COOKIE_SIZE);
++		if (bytes_read == -1) {
++			log_error("Could not read the SVPNCOOKIE (%s)\n", strerror(errno));
++			goto exit;
++		}
++		cookie[bytes_read] = '\0';
++		new_line_character = strchr(cookie, '\n');
++		if (new_line_character != NULL) {
++			*new_line_character = '\0';
++		}
++		// printf("Cookie '%s'\n", cookie);
++		cli_cfg.svpn_cookie = strdup(cookie);
++		if (cli_cfg.svpn_cookie == NULL) {
++			log_error("Could not store the SVPNCOOKIE (%s)\n", strerror(errno));
++			goto exit;
++		}
++	}
++
+ 	if (cli_cfg.password[0] != '\0')
+ 		log_warn("You should not pass the password on the command line. Type it interactively or use a configuration file instead.\n");
+
+@@ -612,14 +650,14 @@ int main(int argc, char **argv)
+ 		goto user_error;
+ 	}
+ 	// Check username
+-	if (cfg.username[0] == '\0')
++	if (cfg.username[0] == '\0' && cfg.svpn_cookie == NULL)
+ 		// Need either username or cert
+ 		if (cfg.user_cert == NULL) {
+ 			log_error("Specify a username.\n");
+ 			goto user_error;
+ 		}
+ 	// If username but no password given, interactively ask user
+-	if (!cfg.password_set && cfg.username[0] != '\0') {
++	if (!cfg.password_set && cfg.username[0] != '\0' && cfg.svpn_cookie == NULL) {
+ 		char hint[USERNAME_SIZE + 1 + REALM_SIZE + 1 + GATEWAY_HOST_SIZE + 10];
+
+ 		sprintf(hint, "%s_%s_%s_password",
+diff --git a/src/tunnel.c b/src/tunnel.c
+index 5dc14dd..3ee9005 100644
+--- a/src/tunnel.c
++++ b/src/tunnel.c
+@@ -66,6 +66,7 @@
+
+ #include <errno.h>
+ #include <signal.h>
++#include <stdio.h>
+ #include <string.h>
+ #include <assert.h>
+
+@@ -1271,6 +1272,13 @@ int run_tunnel(struct vpn_config *config)
+ 		.on_ppp_if_down = on_ppp_if_down
+ 	};
+
++	if (config->svpn_cookie != NULL) {
++		if (auth_set_cookie(&tunnel, config->svpn_cookie) != 1) {
++			log_error("The given SVPNCOOKIE is not valid\n");
++			return 1;
++		}
++	}
++
+ 	// Step 0: get gateway host IP
+ 	log_debug("Resolving gateway host ip\n");
+ 	ret = get_gateway_host_ip(&tunnel);
+@@ -1286,12 +1294,14 @@ int run_tunnel(struct vpn_config *config)
+
+ 	// Step 2: connect to the HTTP interface and authenticate to get a
+ 	// cookie
+-	ret = auth_log_in(&tunnel);
+-	if (ret != 1) {
+-		log_error("Could not authenticate to gateway. Please check the password, client certificate, etc.\n");
+-		log_debug("%s (%d)\n", err_http_str(ret), ret);
+-		ret = 1;
+-		goto err_tunnel;
++	if (config->svpn_cookie == NULL) {
++		ret = auth_log_in(&tunnel);
++		if (ret != 1) {
++			log_error("Could not authenticate to gateway. Please check the password, client certificate, etc.\n");
++			log_debug("%s (%d)\n", err_http_str(ret), ret);
++			ret = 1;
++			goto err_tunnel;
++		}
+ 	}
+ 	log_info("Authenticated.\n");
+ 	log_debug("Cookie: %s\n", tunnel.cookie);
+diff --git a/src/userinput.c b/src/userinput.c
+index 1080f2b..7318249 100644
+--- a/src/userinput.c
++++ b/src/userinput.c
+@@ -340,3 +340,22 @@ void read_password(const char *pinentry, const char *hint,
+
+ 	printf("\n");
+ }
++
++void read_input(const char *prompt, char *output, size_t len)
++{
++	int i;
++
++	printf("%s", prompt);
++	fflush(stdout);
++
++	for (i = 0; i < len; i++) {
++		int c = getchar();
++
++		if (c == '\n' || c == EOF)
++			break;
++		output[i] = (char) c;
++	}
++	output[i] = '\0';
++
++	printf("\n");
++}
+diff --git a/src/userinput.h b/src/userinput.h
+index 88c5102..edd4172 100644
+--- a/src/userinput.h
++++ b/src/userinput.h
+@@ -23,4 +23,6 @@
+ void read_password(const char *pinentry, const char *hint,
+                    const char *prompt, char *pass, size_t len);
+
++void read_input(const char *prompt, char *output, size_t len);
++
+ #endif
+--
+2.34.1
+
