@@ -43,7 +43,7 @@ class Browser:
         self.window.add(web_view)
 
         signal.signal(signal.SIGALRM, self.show)
-        signal.alarm(3)
+        signal.alarm(2)
 
     def show(self, _signun, _stack):
         self.window.show_all()
