@@ -87,12 +87,13 @@ class Browser:
 
     def container_exit(self, _process: Gio.Subprocess, _task: Gio.Task):
         dialog = Gtk.MessageDialog(
+            parent=self.window,
             message_type=Gtk.MessageType.ERROR,
             buttons=Gtk.ButtonsType.CLOSE,
             text="Container encerrado inesperadamente. Execute o programa novamente.",
         )
         dialog.set_title("Conexão interrompida")
-        dialog.present()
+        self.window.present()
         dialog.run()
         self.quit()
 
