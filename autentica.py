@@ -45,14 +45,9 @@ class Browser:
         web_view.load_uri(f"https://{args.host}")
 
         self.window.add(web_view)
-
-        signal.signal(signal.SIGALRM, self.show)
-        signal.alarm(2)
+        self.window.show_all()
 
         return self
-
-    def show(self, _signun, _stack):
-        self.window.show_all()
 
     def page_changed(self, webview, event=None):
         if event != WebKit2.LoadEvent.FINISHED:
