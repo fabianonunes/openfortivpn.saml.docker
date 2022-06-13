@@ -26,9 +26,10 @@ class Browser:
     def run(self):
         Gtk.init(None)
         self.window = Gtk.Window()
-        self.window.set_title("Login")
+        self.window.set_title("VPN")
+        self.window.set_default_icon_name("network-vpn")
         self.window.connect("delete-event", self.quit)
-        self.window.resize(450, 560)
+        self.window.resize(500, 570)
 
         ctx = WebKit2.WebContext.get_default()
         cookie_storage_path = path.expanduser("~/.cache/openfortivpn-2fa")
