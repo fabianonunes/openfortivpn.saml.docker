@@ -76,7 +76,7 @@ class Browser:
 
     def connect(self):
         command = (
-            f"pkexec -u {os.getlogin()} docker run --network=host --device=/dev/ppp "
+            f"docker run --network=host --device=/dev/ppp "
             f"--cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
             f"-i {args.image} {args.host} --svpn-cookie {self.cookie} {' '.join(mass)}"
         )
