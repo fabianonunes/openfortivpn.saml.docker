@@ -31,7 +31,7 @@ class Browser:
         self.window.resize(500, 570)
 
         ctx = WebKit2.WebContext.get_default()
-        cookie_storage_path = path.expanduser("~/.cache/openfortivpn-2fa")
+        cookie_storage_path = path.expanduser("~/.cache/openfortivpn.cookies")
 
         self.cookie_manager = ctx.get_cookie_manager()
         self.cookie_manager.set_persistent_storage(
