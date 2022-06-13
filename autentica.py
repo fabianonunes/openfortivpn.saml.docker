@@ -2,7 +2,6 @@
 import argparse
 import os
 import signal
-import time
 from os import path
 
 import gi
@@ -101,6 +100,5 @@ class Browser:
 
 
 if __name__ == "__main__":
-    start = time.time()
     b = Browser().run()
     Gtk.main()
