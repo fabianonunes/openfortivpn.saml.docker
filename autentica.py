@@ -1,27 +1,28 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import signal
 import time
 from os import path
-from subprocess import run
 
 import gi
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("WebKit2", "4.0")
-from gi.repository import Gtk, WebKit2  # noqa: E402
+from gi.repository import Gio, Gtk, WebKit2  # noqa: E402
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--host", required=True)
 parser.add_argument("--image", default="localhost/openfortivpn-2fa")
 parser.add_argument("--cookie", default="SVPNCOOKIE")
-args = parser.parse_args()
+args, mass = parser.parse_known_args()
 
 
 class Browser:
     window = None
     cookie_manager = None
     cookie = None
+    container = None
 
     def run(self):
         Gtk.init(None)
@@ -63,25 +64,43 @@ class Browser:
         cookies = {c.name: c.value for c in f}
         if args.cookie in cookies:
             self.cookie = f"{args.cookie}={cookies[args.cookie]}"
-            self.quit()
+            self.connect()
 
     def quit(self, _a=None, _b=None):
         self.window.destroy()
         Gtk.main_quit()
         while Gtk.events_pending():
             Gtk.main_iteration()
+        self.stop_container()
+
+    def stop_container(self):
+        self.container.send_signal(signal.SIGTERM)
+        self.container.wait()
 
     def connect(self):
         command = (
-            "sudo docker run --name vpn --network=host --device=/dev/ppp --cap-add=NET_ADMIN "
-            f"--volume /etc/resolv.conf:/etc/resolv.conf --rm -i {args.image} {args.host} "
-            f"--svpn-cookie {self.cookie}"
+            f"pkexec -u {os.getlogin()} docker run --network=host --device=/dev/ppp "
+            f"--cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
+            f"-i {args.image} {args.host} --svpn-cookie {self.cookie} {' '.join(mass)}"
         )
-        run(command.split(" "))
+        self.container = Gio.Subprocess.new(
+            command.strip().split(" "), Gio.SubprocessFlags.NONE
+        )
+        self.container.wait_async(None, self.container_exit)
+
+    def container_exit(self, _process: Gio.Subprocess, _task: Gio.Task):
+        dialog = Gtk.MessageDialog(
+            message_type=Gtk.MessageType.ERROR,
+            buttons=Gtk.ButtonsType.CLOSE,
+            text="Container encerrado inesperadamente. Execute o programa novamente.",
+        )
+        dialog.set_title("Conexão interrompida")
+        dialog.present()
+        dialog.run()
+        self.quit()
 
 
 if __name__ == "__main__":
     start = time.time()
     b = Browser().run()
     Gtk.main()
-    b.connect()
