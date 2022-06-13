@@ -35,7 +35,6 @@ class Browser:
         cookie_storage_path = path.expanduser("~/.cache/openfortivpn-2fa")
 
         self.cookie_manager = ctx.get_cookie_manager()
-        self.cookie_manager.set_accept_policy(WebKit2.CookieAcceptPolicy.ALWAYS)
         self.cookie_manager.set_persistent_storage(
             cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
         )
