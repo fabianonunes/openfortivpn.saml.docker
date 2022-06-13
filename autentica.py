@@ -52,9 +52,9 @@ class Browser:
             return
         mr = webview.get_main_resource()
         uri = mr.get_uri()
-        self.cookie_manager.get_cookies(uri, None, self.on_get_cookie)
+        self.cookie_manager.get_cookies(uri, None, self.on_receive_cookie)
 
-    def on_get_cookie(self, cookie_manager, result):
+    def on_receive_cookie(self, cookie_manager, result):
         if self.cookie:
             return
         f = cookie_manager.get_cookies_finish(result)
