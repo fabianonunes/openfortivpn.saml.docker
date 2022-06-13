@@ -13,7 +13,6 @@ from gi.repository import Gio, Gtk, WebKit2  # noqa: E402
 parser = argparse.ArgumentParser()
 parser.add_argument("--host", required=True)
 parser.add_argument("--image", default="ghcr.io/fabianonunes/saml-vpn:0.0.2")
-parser.add_argument("--cookie", default="SVPNCOOKIE")
 args, mass = parser.parse_known_args()
 
 
@@ -60,8 +59,9 @@ class Browser:
             return
         f = cookie_manager.get_cookies_finish(result)
         cookies = {c.name: c.value for c in f}
-        if args.cookie in cookies:
-            self.cookie = f"{args.cookie}={cookies[args.cookie]}"
+        cookie_name = "SVPNCOOKIE"
+        if cookie_name in cookies:
+            self.cookie = f"{cookie_name}={cookies[cookie_name]}"
             self.connect()
 
     def quit(self, _a=None, _b=None):
