@@ -100,4 +100,5 @@ class Browser:
 
 if __name__ == "__main__":
     b = Browser().run()
+    signal.signal(signal.SIGINT, b.quit)
     Gtk.main()
