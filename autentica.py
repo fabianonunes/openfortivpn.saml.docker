@@ -51,8 +51,7 @@ class Browser:
         if event != WebKit2.LoadEvent.FINISHED:
             return
         mr = webview.get_main_resource()
-        uri = mr.get_uri()
-        self.cookie_manager.get_cookies(uri, None, self.on_receive_cookie)
+        self.cookie_manager.get_cookies(mr.get_uri(), None, self.on_receive_cookie)
 
     def on_receive_cookie(self, cookie_manager, result):
         if self.cookie:
