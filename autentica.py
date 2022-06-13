@@ -12,7 +12,7 @@ from gi.repository import Gio, Gtk, WebKit2  # noqa: E402
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--host", required=True)
-parser.add_argument("--image", default="localhost/openfortivpn-2fa")
+parser.add_argument("--image", default="ghcr.io/fabianonunes/saml-vpn:0.0.2")
 parser.add_argument("--cookie", default="SVPNCOOKIE")
 args, mass = parser.parse_known_args()
 
