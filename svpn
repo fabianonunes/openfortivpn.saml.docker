@@ -77,7 +77,7 @@ class Browser:
             f"-i {args.image} {args.host} --svpn-cookie {self.cookie} {' '.join(mass)}"
         )
         # cmd = "docker run --rm --init ubuntu:20.04 tail -n1000 -f /etc/pam.conf"
-        return cmd.strip()
+        return cmd.strip().split(" ")
 
     def quit(self, _a=None, _b=None):
         self.stop_container()
@@ -104,13 +104,11 @@ class Browser:
         gi.require_version("Vte", "2.91")
         from gi.repository import GLib, Vte
 
-        cmd = self.build_cmd()
         self.terminal = Vte.Terminal()
-
         self.terminal.spawn_async(
             Vte.PtyFlags.DEFAULT,  # pty_flags
             os.environ["HOME"],  # working_directory
-            cmd.split(" "),  # argv
+            self.build_cmd(),  # argv
             [],  # envv
             GLib.SpawnFlags.DEFAULT,  # spawn_flags
             None,  # child_setup
