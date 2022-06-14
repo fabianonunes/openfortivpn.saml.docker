@@ -89,6 +89,8 @@ class Browser:
         self.terminal.grab_focus()
 
     def stop_container(self, _a=None, _b=None):
+        if not self.terminal:
+            return
         # o openfortivpn não reage ao SIGHUP que é o sinal
         # enviado ao Vte quando a aplicação é finalizada
         self.terminal.feed_child(b"\x03")  # CTRL+C
