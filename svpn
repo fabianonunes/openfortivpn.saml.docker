@@ -7,9 +7,8 @@ from os import path
 import gi
 
 gi.require_version("Gtk", "3.0")
-gi.require_version("Vte", "2.91")
 gi.require_version("WebKit2", "4.0")
-from gi.repository import GLib, Vte, Gtk, WebKit2  # noqa: E402
+from gi.repository import Gtk, WebKit2  # noqa: E402
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--host", required=True)
@@ -95,6 +94,9 @@ class Browser:
         self.terminal.feed_child(b"\x03")  # CTRL+C
 
     def build_vte(self):
+        gi.require_version("Vte", "2.91")
+        from gi.repository import GLib, Vte
+
         cmd = self.build_cmd()
         self.terminal = Vte.Terminal()
 
