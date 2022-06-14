@@ -66,13 +66,14 @@ class Browser:
             self.connect()
 
     def build_cmd(self):
+        sudo = "" if os.access("/var/run/docker.sock", os.W_OK | os.R_OK) else "sudo"
         cmd = (
-            f"sudo docker run --init --network=host --device=/dev/ppp "
+            f"{sudo} docker run --init --network=host --device=/dev/ppp "
             f"--cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
             f"-i {args.image} {args.host} --svpn-cookie {self.cookie} {' '.join(mass)}"
         )
         # cmd = "docker run --rm --init ubuntu:20.04 tail -n1000 -f /etc/pam.conf"
-        return cmd
+        return cmd.strip()
 
     def quit(self, _a=None, _b=None):
         self.stop_container()
@@ -100,7 +101,7 @@ class Browser:
         self.terminal.spawn_async(
             Vte.PtyFlags.DEFAULT,  # pty_flags
             os.environ["HOME"],  # working_directory
-            cmd.strip().split(" "),  # argv
+            cmd.split(" "),  # argv
             [],  # envv
             GLib.SpawnFlags.DEFAULT,  # spawn_flags
             None,  # child_setup
