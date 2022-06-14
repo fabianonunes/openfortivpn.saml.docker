@@ -65,9 +65,9 @@ class Browser:
             self.connect()
 
     def build_cmd(self):
-        sudo = "" if os.access("/var/run/docker.sock", os.W_OK | os.R_OK) else "sudo"
+        priv = "env" if os.access("/var/run/docker.sock", os.W_OK | os.R_OK) else "sudo"
         cmd = (
-            f"{sudo} docker run --init --network=host --device=/dev/ppp "
+            f"/usr/bin/{priv} docker run --init --network=host --device=/dev/ppp "
             f"--cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
             f"-i {args.image} {args.host} --svpn-cookie {self.cookie} {' '.join(mass)}"
         )
