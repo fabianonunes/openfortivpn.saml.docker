@@ -22,6 +22,7 @@ class Browser:
     cookie = None
     web_view = None
     terminal = None
+    box = None
 
     def run(self):
         Gtk.init(None)
@@ -29,7 +30,10 @@ class Browser:
         self.window.set_title("VPN")
         self.window.set_default_icon_name("network-vpn")
         self.window.connect("delete-event", self.quit)
-        self.window.resize(500, 570)
+        self.window.resize(550, 750)
+
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.window.add(self.box)
 
         ctx = WebKit2.WebContext.get_default()
         cookie_storage_path = path.expanduser("~/.cache/openfortivpn.cookies")
@@ -43,7 +47,8 @@ class Browser:
         self.web_view.connect("load-changed", self.page_changed)
         self.web_view.load_uri(f"https://{args.host}")
 
-        self.window.add(self.web_view)
+        self.box.pack_start(self.web_view, True, True, 0)
+
         self.window.show_all()
 
         return self
@@ -82,9 +87,9 @@ class Browser:
             Gtk.main_iteration()
 
     def connect(self):
-        terminal = self.build_vte()
-        self.window.remove(self.web_view)
-        self.window.add(terminal)
+        scroller = self.build_vte()
+        self.web_view.set_zoom_level(0.85)
+        self.box.pack_start(scroller, True, True, 0)
         self.window.show_all()
         self.terminal.grab_focus()
 
@@ -115,13 +120,9 @@ class Browser:
             # self._process_spawned,  # callback
         )
 
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         scroller = Gtk.ScrolledWindow()
-        scroller.set_hexpand(True)
-        scroller.set_vexpand(True)
         scroller.add(self.terminal)
-        box.pack_start(scroller, False, True, 0)
-        return box
+        return scroller
 
 
 if __name__ == "__main__":
