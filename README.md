@@ -36,8 +36,8 @@ E só! 🤓
 
 O openfortivpn possui suporte à autenticação com cookies, mas ainda não
 é possível passá-lo via linha de comando. A imagem Docker deste repositório
-é nada mais do que a versão 1.17.3 com o patch que permite a passagem
-de cookies como parâmetro de linha de comando.
+nada mais é do que a versão 1.17.3 com o patch que permite a passagem
+do cookie de autenticação como parâmetro.
 </details>
 
 <details>
