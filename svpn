@@ -74,7 +74,6 @@ class Browser:
             f"--cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
             f"-i {args.image} {args.host} --svpn-cookie {self.cookie} {' '.join(mass)}"
         )
-        # cmd = "docker run --rm --init ubuntu:20.04 tail -n1000 -f /etc/pam.conf"
         return cmd.strip().split(" ")
 
     def quit(self, _a=None, _b=None):
@@ -93,8 +92,7 @@ class Browser:
     def stop_container(self, _a=None, _b=None):
         if not self.terminal:
             return
-        # o openfortivpn não reage ao SIGHUP que é o sinal
-        # enviado ao Vte quando a aplicação é finalizada
+        # o openfortivpn não reage ao SIGHUP propagado pelo Vte ao sair
         self.terminal.feed_child(b"\x03")  # CTRL+C
 
     def build_vte(self):
