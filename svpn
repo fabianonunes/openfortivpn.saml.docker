@@ -81,7 +81,8 @@ class Browser:
             Gtk.main_quit()
             while Gtk.events_pending():
                 Gtk.main_iteration()
-        except:  # noqa
+        except Exception as err:
+            print(err)
             exit(1)
 
     def connect(self):
