@@ -18,7 +18,6 @@ args, mass = parser.parse_known_args()
 
 class Browser:
     window = None
-    cookie_manager = None
     cookie = None
     web_view = None
     terminal = None
@@ -38,13 +37,13 @@ class Browser:
         ctx = WebKit2.WebContext.get_default()
         cookie_storage_path = path.expanduser("~/.cache/openfortivpn.cookies")
 
-        self.cookie_manager = ctx.get_cookie_manager()
-        self.cookie_manager.set_persistent_storage(
+        cookie_manager = ctx.get_cookie_manager()
+        cookie_manager.set_persistent_storage(
             cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
         )
 
         self.web_view = WebKit2.WebView()
-        self.web_view.connect("load-changed", self.page_changed)
+        self.web_view.connect("load-changed", self.page_changed, cookie_manager)
         self.web_view.load_uri(f"https://{args.host}")
 
         self.box.pack_start(self.web_view, True, True, 0)
@@ -53,11 +52,11 @@ class Browser:
 
         return self
 
-    def page_changed(self, webview, event=None):
+    def page_changed(self, webview, event, cookie_manager):
         if event != WebKit2.LoadEvent.FINISHED:
             return
         mr = webview.get_main_resource()
-        self.cookie_manager.get_cookies(mr.get_uri(), None, self.on_receive_cookie)
+        cookie_manager.get_cookies(mr.get_uri(), None, self.on_receive_cookie)
 
     def on_receive_cookie(self, cookie_manager, result):
         if self.cookie:
