@@ -19,7 +19,6 @@ args, mass = parser.parse_known_args()
 class Browser:
     window = None
     cookie = None
-    web_view = None
     terminal = None
     box = None
 
@@ -42,11 +41,11 @@ class Browser:
             cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
         )
 
-        self.web_view = WebKit2.WebView()
-        self.web_view.connect("load-changed", self.page_changed, cookie_manager)
-        self.web_view.load_uri(f"https://{args.host}")
+        web_view = WebKit2.WebView()
+        web_view.connect("load-changed", self.page_changed, cookie_manager)
+        web_view.load_uri(f"https://{args.host}")
 
-        self.box.pack_start(self.web_view, True, True, 0)
+        self.box.pack_start(web_view, True, True, 0)
 
         self.window.show_all()
 
@@ -87,7 +86,6 @@ class Browser:
 
     def connect(self):
         scroller = self.build_vte()
-        self.web_view.set_zoom_level(0.85)
         self.box.pack_start(scroller, True, True, 0)
         self.window.show_all()
         self.terminal.grab_focus()
