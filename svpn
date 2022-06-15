@@ -97,15 +97,12 @@ class Browser:
         from gi.repository import Vte
 
         self.terminal = Vte.Terminal()
-        self.terminal.spawn_async(
+        self.terminal.spawn_sync(
             Vte.PtyFlags.DEFAULT,  # pty_flags
             os.environ["HOME"],  # working_directory
             self.build_cmd(),  # argv
             [],  # envv
             0,  # spawn_flags: GLib.SpawnFlags.DEFAULT
-            None,  # child_setup
-            None,  # child_setup_data - não documentado
-            -1,  # timeout
         )
 
         scroller = Gtk.ScrolledWindow()
