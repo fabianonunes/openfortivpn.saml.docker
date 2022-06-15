@@ -109,7 +109,6 @@ class Browser:
             None,  # child_setup
             None,  # child_setup_data - não documentado
             -1,  # timeout
-            None,  # cancellable
         )
 
         scroller = Gtk.ScrolledWindow()
