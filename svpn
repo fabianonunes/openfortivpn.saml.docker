@@ -99,7 +99,7 @@ class Browser:
             self.terminal.feed_child(b"\x03")  # CTRL+C
         except:  # noqa
             # Ubuntu 18.04 ainda usa vte < 0.59.91
-            self.terminal.feed_child("\x03", -1)
+            self.terminal.feed_child("\x03", -1)  # noqa
 
     def build_vte(self):
         gi.require_version("Vte", "2.91")
