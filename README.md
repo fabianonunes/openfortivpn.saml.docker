@@ -1,5 +1,14 @@
 # FortiClient VPN no Linux com autenticação de dois fatores
 
+## Requisitos
+
+- Docker
+- Caso sua distribuição não utilize o Gnome, instale os seguintes pacotes:
+
+    ```bash
+    sudo apt install gir1.2-vte-2.91 gir1.2-webkit2-4.0
+    ```
+
 ## Instalação
 
 - Copie o arquivo `svpn` para algum local em disco (ou simplesmente clone este repositório).
@@ -15,12 +24,6 @@
     SingleMainWindow=true
     StartupWMClass=svpn
     Exec=/path/para/o/arquivo/svpn --host host_do_servidor_da_vpn.com.br
-    ```
-
-- Caso sua distribuição não utilize o Gnome, talvez você precise instalar os seguintes pacotes:
-
-    ```bash
-    sudo apt install gir1.2-vte-2.91 gir1.2-webkit2-4.0
     ```
 
 E só! 🤓
