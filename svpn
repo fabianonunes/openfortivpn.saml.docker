@@ -74,11 +74,14 @@ class Browser:
         return cmd.strip().split(" ")
 
     def quit(self, _a=None, _b=None):
-        self.stop_container()
-        self.window.destroy()
-        Gtk.main_quit()
-        while Gtk.events_pending():
-            Gtk.main_iteration()
+        try:
+            self.stop_container()
+            self.window.destroy()
+            Gtk.main_quit()
+            while Gtk.events_pending():
+                Gtk.main_iteration()
+        except:  # noqa
+            exit(1)
 
     def connect(self):
         scroller = self.build_vte()
