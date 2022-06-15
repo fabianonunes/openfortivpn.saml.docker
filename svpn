@@ -95,7 +95,11 @@ class Browser:
         if not self.terminal:
             return
         # o openfortivpn não reage ao SIGHUP propagado pelo Vte ao sair
-        self.terminal.feed_child(b"\x03")  # CTRL+C
+        try:
+            self.terminal.feed_child(b"\x03")  # CTRL+C
+        except:  # noqa
+            # Ubuntu 18.04 ainda usa vte < 0.59.91
+            self.terminal.feed_child("\x03", -1)
 
     def build_vte(self):
         gi.require_version("Vte", "2.91")
