@@ -60,11 +60,10 @@ class Browser:
     def on_receive_cookie(self, cookie_manager, result):
         if self.cookie:
             return
-        f = cookie_manager.get_cookies_finish(result)
-        cookies = {c.name: c.value for c in f}
-        cookie_name = "SVPNCOOKIE"
-        if cookie_name in cookies:
-            self.cookie = f"{cookie_name}={cookies[cookie_name]}"
+        cookies = cookie_manager.get_cookies_finish(result)
+        cookie = next((c for c in cookies if c.name == "SVPNCOOKIE"), None)
+        if cookie:
+            self.cookie = f"{cookie.name}={cookie.value}"
             self.connect()
 
     def build_cmd(self):
