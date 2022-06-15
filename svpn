@@ -24,9 +24,7 @@ class Browser:
 
     def run(self):
         Gtk.init(None)
-        self.window = Gtk.Window()
-        self.window.set_title("VPN")
-        self.window.set_default_icon_name("network-vpn")
+        self.window = Gtk.Window(title="VPN", icon_name="network-vpn")
         self.window.connect("delete-event", self.quit)
         self.window.resize(550, 750)
 
