@@ -94,7 +94,7 @@ class Browser:
 
     def build_vte(self):
         gi.require_version("Vte", "2.91")
-        from gi.repository import GLib, Vte
+        from gi.repository import Vte
 
         self.terminal = Vte.Terminal()
         self.terminal.spawn_async(
@@ -102,7 +102,7 @@ class Browser:
             os.environ["HOME"],  # working_directory
             self.build_cmd(),  # argv
             [],  # envv
-            GLib.SpawnFlags.DEFAULT,  # spawn_flags
+            0,  # spawn_flags: GLib.SpawnFlags.DEFAULT
             None,  # child_setup
             None,  # child_setup_data - não documentado
             -1,  # timeout
