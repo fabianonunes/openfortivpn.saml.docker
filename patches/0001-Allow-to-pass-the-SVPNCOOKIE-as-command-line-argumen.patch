@@ -1,4 +1,4 @@
-From b59b40c2d7deef51edbc5c754bb37b81229c28d0 Mon Sep 17 00:00:00 2001
+From 0943bbf77e705c0e68c091c665b88c3aedfcdc45 Mon Sep 17 00:00:00 2001
 From: Gabriele Mazzotta <g.mazzotta@localhost>
 Date: Sat, 26 Mar 2022 12:05:41 +0100
 Subject: [PATCH] Allow to pass the SVPNCOOKIE as command-line argument
@@ -6,15 +6,13 @@ Subject: [PATCH] Allow to pass the SVPNCOOKIE as command-line argument
 This also allows to pass the cookie through stdin, making it easy
 to chain multiple commands.
 ---
- src/config.c    |  9 +++++++++
- src/config.h    |  1 +
- src/http.c      | 10 +++++++---
- src/http.h      |  1 +
- src/main.c      | 42 ++++++++++++++++++++++++++++++++++++++++--
- src/tunnel.c    | 22 ++++++++++++++++------
- src/userinput.c | 19 +++++++++++++++++++
- src/userinput.h |  2 ++
- 8 files changed, 95 insertions(+), 11 deletions(-)
+ src/config.c |  9 +++++++++
+ src/config.h |  1 +
+ src/http.c   | 10 +++++++---
+ src/http.h   |  1 +
+ src/main.c   | 13 +++++++++++--
+ src/tunnel.c | 22 ++++++++++++++++------
+ 6 files changed, 45 insertions(+), 11 deletions(-)
 
 diff --git a/src/config.c b/src/config.c
 index 2592a22..21ce0d7 100644
@@ -105,7 +103,7 @@ index ec124e9..1cd03bd 100644
 
  #endif
 diff --git a/src/main.c b/src/main.c
-index 1a12e51..6fbf3a7 100644
+index 1a12e51..c874ce3 100644
 --- a/src/main.c
 +++ b/src/main.c
 @@ -79,6 +79,7 @@
@@ -116,24 +114,15 @@ index 1a12e51..6fbf3a7 100644
  PPPD_USAGE \
  "                    " RESOLVCONF_USAGE "[--ca-file=<file>]\n" \
  "                    [--user-cert=<file>] [--user-key=<file>]\n" \
-@@ -112,6 +113,8 @@ PPPD_USAGE \
+@@ -112,6 +113,7 @@ PPPD_USAGE \
  "                                " SYSCONFDIR "/openfortivpn/config).\n" \
  "  -u <user>, --username=<user>  VPN account username.\n" \
  "  -p <pass>, --password=<pass>  VPN account password.\n" \
 +"  --svpn-cookie                 A valid SVPNCOOKIE to enstablish the connection.\n" \
-+"                                Pass - to have the cookie read from stdin.\n" \
  "  -o <otp>, --otp=<otp>         One-Time-Password.\n" \
  "  --otp-prompt=<prompt>         Search for the OTP prompt starting with this string.\n" \
  "  --otp-delay=<delay>           Wait <delay> seconds before sending the OTP.\n" \
-@@ -189,6 +192,7 @@ int main(int argc, char **argv)
- 	const char *config_file = SYSCONFDIR "/openfortivpn/config";
- 	const char *host;
- 	char *port_str;
-+	int read_svpn_cookie_from_stdin = 0;
-
- 	struct vpn_config cfg = {
- 		.gateway_host = {'\0'},
-@@ -196,6 +200,7 @@ int main(int argc, char **argv)
+@@ -196,6 +198,7 @@ int main(int argc, char **argv)
  		.username = {'\0'},
  		.password = {'\0'},
  		.password_set = 0,
@@ -141,7 +130,7 @@ index 1a12e51..6fbf3a7 100644
  		.otp = {'\0'},
  		.otp_prompt = NULL,
  		.otp_delay = 0,
-@@ -252,6 +257,7 @@ int main(int argc, char **argv)
+@@ -252,6 +255,7 @@ int main(int argc, char **argv)
  		{"otp",                  required_argument, NULL, 'o'},
  		{"otp-prompt",           required_argument, NULL, 0},
  		{"otp-delay",            required_argument, NULL, 0},
@@ -149,53 +138,19 @@ index 1a12e51..6fbf3a7 100644
  		{"no-ftm-push",          no_argument, &cli_cfg.no_ftm_push, 1},
  		{"ifname",               required_argument, NULL, 0},
  		{"set-routes",	         required_argument, NULL, 0},
-@@ -509,6 +515,15 @@ int main(int argc, char **argv)
+@@ -509,6 +513,11 @@ int main(int argc, char **argv)
  				cli_cfg.set_dns = set_dns;
  				break;
  			}
 +			if (strcmp(long_options[option_index].name,
 +			           "svpn-cookie") == 0) {
-+				if (strcmp(optarg, "-") == 0) {
-+					read_svpn_cookie_from_stdin = 1;
-+				} else {
-+					cli_cfg.svpn_cookie = strdup(optarg);
-+				}
++				cli_cfg.svpn_cookie = strdup(optarg);
 +				break;
 +			}
  			goto user_error;
  		case 'h':
  			printf("%s%s%s%s%s%s%s", usage, summary,
-@@ -548,6 +563,29 @@ int main(int argc, char **argv)
- 	if (optind < argc - 1 || optind > argc)
- 		goto user_error;
-
-+	if (read_svpn_cookie_from_stdin) {
-+		char cookie[COOKIE_SIZE + 1];
-+		int bytes_read;
-+		char *new_line_character;
-+
-+		bytes_read = read(0, cookie, COOKIE_SIZE);
-+		if (bytes_read == -1) {
-+			log_error("Could not read the SVPNCOOKIE (%s)\n", strerror(errno));
-+			goto exit;
-+		}
-+		cookie[bytes_read] = '\0';
-+		new_line_character = strchr(cookie, '\n');
-+		if (new_line_character != NULL) {
-+			*new_line_character = '\0';
-+		}
-+		// printf("Cookie '%s'\n", cookie);
-+		cli_cfg.svpn_cookie = strdup(cookie);
-+		if (cli_cfg.svpn_cookie == NULL) {
-+			log_error("Could not store the SVPNCOOKIE (%s)\n", strerror(errno));
-+			goto exit;
-+		}
-+	}
-+
- 	if (cli_cfg.password[0] != '\0')
- 		log_warn("You should not pass the password on the command line. Type it interactively or use a configuration file instead.\n");
-
-@@ -612,14 +650,14 @@ int main(int argc, char **argv)
+@@ -612,14 +621,14 @@ int main(int argc, char **argv)
  		goto user_error;
  	}
  	// Check username
@@ -259,44 +214,6 @@ index 5dc14dd..3ee9005 100644
  	}
  	log_info("Authenticated.\n");
  	log_debug("Cookie: %s\n", tunnel.cookie);
-diff --git a/src/userinput.c b/src/userinput.c
-index 1080f2b..7318249 100644
---- a/src/userinput.c
-+++ b/src/userinput.c
-@@ -340,3 +340,22 @@ void read_password(const char *pinentry, const char *hint,
-
- 	printf("\n");
- }
-+
-+void read_input(const char *prompt, char *output, size_t len)
-+{
-+	int i;
-+
-+	printf("%s", prompt);
-+	fflush(stdout);
-+
-+	for (i = 0; i < len; i++) {
-+		int c = getchar();
-+
-+		if (c == '\n' || c == EOF)
-+			break;
-+		output[i] = (char) c;
-+	}
-+	output[i] = '\0';
-+
-+	printf("\n");
-+}
-diff --git a/src/userinput.h b/src/userinput.h
-index 88c5102..edd4172 100644
---- a/src/userinput.h
-+++ b/src/userinput.h
-@@ -23,4 +23,6 @@
- void read_password(const char *pinentry, const char *hint,
-                    const char *prompt, char *pass, size_t len);
-
-+void read_input(const char *prompt, char *output, size_t len);
-+
- #endif
 --
 2.34.1
 
