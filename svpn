@@ -20,6 +20,7 @@ class Browser:
     window = None
     cookie = None
     terminal = None
+    web_view = None
     box = None
     pid = None
 
@@ -27,10 +28,7 @@ class Browser:
         Gtk.init(None)
         self.window = Gtk.Window(title="VPN", icon_name="network-vpn")
         self.window.connect("delete-event", self.quit)
-        self.window.resize(550, 750)
-
-        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.window.add(self.box)
+        self.window.resize(500, 570)
 
         ctx = WebKit2.WebContext.get_default()
         cookie_storage_path = path.expanduser("~/.cache/openfortivpn.cookies")
@@ -40,11 +38,11 @@ class Browser:
             cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
         )
 
-        web_view = WebKit2.WebView()
-        web_view.connect("load-changed", self.page_changed, cookie_manager)
-        web_view.load_uri(f"https://{args.host}")
+        self.web_view = WebKit2.WebView()
+        self.web_view.connect("load-changed", self.page_changed, cookie_manager)
+        self.web_view.load_uri(f"https://{args.host}")
 
-        self.box.pack_start(web_view, True, True, 0)
+        self.window.add(self.web_view)
 
         self.window.show_all()
 
@@ -87,7 +85,9 @@ class Browser:
 
     def connect(self):
         scroller = self.build_vte()
-        self.box.pack_start(scroller, True, True, 0)
+        self.web_view.try_close()
+        self.web_view.destroy()
+        self.window.add(scroller)
         self.window.show_all()
         self.terminal.grab_focus()
 
