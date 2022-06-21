@@ -26,7 +26,8 @@
     Exec=/path/para/o/arquivo/svpn --host host_do_servidor_da_vpn.com.br
     ```
 
-Depois de salvar o arquivo `.desktop`, o lançador aparecerá automaticamente no menu do Gnome, na guia Atividades e no dash de aplicativos.
+Depois de salvar o arquivo `.desktop`, o lançador aparecerá automaticamente no menu do Gnome, na guia Atividades e no dash de aplicativos (busque por _openfortivpn_).
+Basta adicionar aos favoritos para facilitar a localização.
 
 E só! 🤓
 
