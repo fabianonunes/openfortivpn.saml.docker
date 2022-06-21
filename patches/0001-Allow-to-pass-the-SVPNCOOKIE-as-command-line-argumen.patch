@@ -1,10 +1,11 @@
 From 0943bbf77e705c0e68c091c665b88c3aedfcdc45 Mon Sep 17 00:00:00 2001
-From: Gabriele Mazzotta <g.mazzotta@localhost>
-Date: Sat, 26 Mar 2022 12:05:41 +0100
+From: Fabiano Nunes <fabianonunes>
+Date: Sun, 19 Jun 2022 19:10:44 -0300
 Subject: [PATCH] Allow to pass the SVPNCOOKIE as command-line argument
 
-This also allows to pass the cookie through stdin, making it easy
-to chain multiple commands.
+Simplificação do commit b59b40c2d7deef51edbc5c754bb37b81229c28d0 por
+Gabriele Mazzotta <g.mazzotta@localhost> que permite passagem do cookie
+pela linha de comando, mas ignorando a passagem por stdin
 ---
  src/config.c |  9 +++++++++
  src/config.h |  1 +
