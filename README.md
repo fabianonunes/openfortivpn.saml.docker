@@ -13,15 +13,13 @@
 
 - Copie o arquivo `svpn` para algum local em disco (ou simplesmente clone este repositório).
 - Crie o arquivo `~/.local/share/applications/vpn.desktop` com o seguinte conteúdo:
-    > 🔴 Não se esqueça de ajustar o campo `Exec`
+    > 🔴 Ajuste o campo `Exec` abaixo com o caminho do arquivo svpn e com o host correto da VPN
 
     ```ini
-    # Ajuste o campo `Exec` abaixo com o caminho do arquivo svpn e com o host correto da VPN
     [Desktop Entry]
     Type=Application
     Name=openfortivpn
     Icon=network-vpn
-    SingleMainWindow=true
     StartupWMClass=svpn
     Exec=/path/para/o/arquivo/svpn --host host_do_servidor_da_vpn.com.br
     ```
