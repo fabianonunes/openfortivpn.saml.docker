@@ -21,6 +21,7 @@
     Name=openfortivpn
     Icon=network-vpn
     StartupWMClass=svpn
+    Categories=Settings
     Exec=/path/para/o/arquivo/svpn --host host_do_servidor_da_vpn.com.br
     ```
 
