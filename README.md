@@ -85,6 +85,21 @@ o parâmetro `--image=localhost/saml-vpn:latest`.
 </details>
 
 <details>
+<summary>Como resolver o erro <code>Could not open /etc/resolv.conf (Permission denied)?</code></summary>
+
+A flag `--drop-cap=ALL` passada ao `docker-run` remove todas as permissões
+padrão do container, inclusive a capacidade de alterar arquivos cujo o dono
+seja diferente do usuário do container.
+Se você recebeu esse erro, significa que o arquivo `/etc/resolve.conf` teve
+seu proprietário padrão alterado. Reverta o proprietário para `root:root`:
+
+```bash
+sudo chown root:root /etc/resolv.conf
+```
+
+</details>
+
+<details>
 <summary>
 Como faço para executar um script antes e após a conexão ser estabelecida?
 </summary>
