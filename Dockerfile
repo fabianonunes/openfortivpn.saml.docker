@@ -1,7 +1,6 @@
 FROM ubuntu:20.04 as openfortivpn
 
-ARG OPENFORTIVPN_URL=https://github.com/adrienverge/openfortivpn/archive/refs/tags/v1.17.3.tar.gz
-COPY ./patches /patches
+ARG OPENFORTIVPN_URL=https://github.com/adrienverge/openfortivpn/archive/refs/tags/v1.18.0.tar.gz
 RUN set -ex;                                 \
   apt-get update;                            \
   apt-get install -y --no-install-recommends \
@@ -16,9 +15,8 @@ RUN set -ex;                                 \
     pkg-config                               \
     wget;                                    \
   wget "$OPENFORTIVPN_URL";                  \
-  tar -xzf v1.17.3.tar.gz;                   \
-  cd openfortivpn-1.17.3;                    \
-  cat /patches/* | patch -p1;                \
+  tar -xzf v1.18.0.tar.gz;                   \
+  cd openfortivpn-1.18.0;                    \
   ./autogen.sh;                              \
   ./configure --prefix="";                   \
   make;
@@ -35,5 +33,5 @@ RUN set -ex;                                 \
   mkdir -p /etc/openfortivpn;                \
   touch /etc/openfortivpn/config;
 
-COPY --from=openfortivpn /openfortivpn-1.17.3/openfortivpn /usr/bin/openfortivpn
+COPY --from=openfortivpn /openfortivpn-1.18.0/openfortivpn /usr/bin/openfortivpn
 ENTRYPOINT ["openfortivpn"]

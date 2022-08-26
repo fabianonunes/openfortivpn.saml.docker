@@ -74,7 +74,7 @@ class Browser:
         cmd = (
             f"/usr/bin/{priv} docker run --init --network=host --device=/dev/ppp --cap-drop=ALL "
             f"--cap-add=DAC_OVERRIDE --cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
-            f"-i {args.image} {args.host} --svpn-cookie {self.cookie} {' '.join(mass)}"
+            f"-i {args.image} {args.host} --cookie {self.cookie} {' '.join(mass)}"
         )
         print(cmd)
         return cmd.strip().split(" ")
