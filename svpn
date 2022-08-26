@@ -76,7 +76,6 @@ class Browser:
             f"--cap-add=DAC_OVERRIDE --cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
             f"-i {args.image} {args.host} --cookie {self.cookie} {' '.join(mass)}"
         )
-        print(cmd)
         return cmd.strip().split(" ")
 
     def quit(self, _a=None, _b=None):
