@@ -38,7 +38,7 @@ E só! 🤓
 
 O suporte à autenticação com cookies via linha de comando só foi adicionado
 na versão 1.18.0 do openfortivpn, que ainda não está disponível nos repositórios
-das distriuições. Para evitar a cerimônia de build e instalação,
+das distribuições. Para evitar a cerimônia de build e instalação,
 optou-se por utilizar um container Docker.
 </details>
 
