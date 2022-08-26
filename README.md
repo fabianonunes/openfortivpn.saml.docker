@@ -36,10 +36,10 @@ E só! 🤓
 <details>
 <summary>Por que utilizar uma imagem Docker?</summary>
 
-O openfortivpn possui suporte à autenticação com cookies, mas ainda não
-é possível passá-lo via linha de comando. A imagem Docker deste repositório
-nada mais é do que a versão 1.17.3 com o patch que permite a passagem
-do cookie de autenticação como parâmetro.
+O suporte à autenticação com cookies via linha de comando só foi adicionado
+na versão 1.18.0 do openfortivpn, que ainda não está disponível nos repositórios
+das distriuições. Para evitar a cerimônia de build e instalação,
+optou-se por utilizar um container Docker.
 </details>
 
 <details>
