@@ -19,6 +19,7 @@
     [Desktop Entry]
     Type=Application
     Name=openfortivpn
+    GenericName=vpn
     Icon=network-vpn
     StartupWMClass=svpn
     Categories=Settings
