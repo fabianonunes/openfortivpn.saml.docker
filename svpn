@@ -25,7 +25,6 @@ class Browser:
     terminal = None
     web_view = None
     box = None
-    pid = None
 
     def run(self):
         Gtk.init(None)
@@ -114,7 +113,7 @@ class Browser:
         from gi.repository import Vte
 
         self.terminal = Vte.Terminal()
-        _, self.pid = self.terminal.spawn_sync(
+        self.terminal.spawn_sync(
             Vte.PtyFlags.DEFAULT,  # pty_flags
             os.environ["HOME"],  # working_directory
             self.build_cmd(),  # argv
