@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+import argparse
+from os import path
+
+import gi
+
+gi.require_version("Gtk", "3.0")
+gi.require_version("WebKit2", "4.0")
+from gi.repository import Gtk, WebKit2  # noqa: E402
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--host", required=True)
+parser.add_argument("--cookie-name", default="SVPNCOOKIE")
+args = parser.parse_args()
+
+
+def main():
+    Gtk.init(None)
+    window = Gtk.Window(title="VPN", icon_name="network-vpn")
+    window.connect("delete-event", on_quit)
+    window.resize(500, 570)
+
+    cookie_storage_path = path.expanduser("~/.cache/openfortivpn.cookies")
+
+    ctx = WebKit2.WebContext.get_default()
+    cookie_manager = ctx.get_cookie_manager()
+    cookie_manager.set_persistent_storage(
+        cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
+    )
+
+    web_view = WebKit2.WebView()
+    web_view.connect("load-changed", page_changed, cookie_manager)
+    web_view.load_uri(args.host)
+
+    window.add(web_view)
+    window.show_all()
+    Gtk.main()
+
+
+def page_changed(web_view, event, cookie_manager):
+    if event != WebKit2.LoadEvent.FINISHED:
+        return
+    mr = web_view.get_main_resource()
+    cookie_manager.get_cookies(mr.get_uri(), None, on_receive_cookie)
+
+
+def on_receive_cookie(cookie_manager, result):
+    for cookie in cookie_manager.get_cookies_finish(result):
+        if cookie.name == args.cookie_name:
+            print(f"{cookie.name}={cookie.value}")
+            on_quit()
+
+
+def on_quit(*args):
+    Gtk.main_quit()
+    while Gtk.events_pending():
+        Gtk.main_iteration()
+
+
+if __name__ == "__main__":
+    main()
