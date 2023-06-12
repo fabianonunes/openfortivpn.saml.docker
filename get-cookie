@@ -28,7 +28,12 @@ def main():
         cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
     )
 
-    web_view = WebKit2.WebView()
+    # hardware acceleration triggers strange segfaults in webkit on systems running Wayland
+    settings = WebKit2.Settings(
+        hardware_acceleration_policy=WebKit2.HardwareAccelerationPolicy.NEVER
+    )
+
+    web_view = WebKit2.WebView(settings=settings)
     web_view.connect("load-changed", page_changed, cookie_manager)
     web_view.load_uri(args.host)
 

@@ -40,7 +40,11 @@ class Browser:
             cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
         )
 
-        self.web_view = WebKit2.WebView()
+        # aceleração de hardware causa segfaults do webkit qdo rodando no wayland
+        settings = WebKit2.Settings(
+            hardware_acceleration_policy=WebKit2.HardwareAccelerationPolicy.NEVER
+        )
+        self.web_view = WebKit2.WebView(settings=settings)
         self.web_view.connect("load-changed", self.page_changed, cookie_manager)
         self.web_view.load_uri(f"https://{args.host}")
 
