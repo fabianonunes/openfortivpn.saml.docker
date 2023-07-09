@@ -1,41 +1,47 @@
-FROM ubuntu:20.04 as openfortivpn
+FROM ubuntu:22.04 as openconnect
 
-ARG VERSION=1.20.0
-ARG URL=https://github.com/adrienverge/openfortivpn/archive/refs/tags
+ARG URL=https://gitlab.com/openconnect/openconnect/-/archive/v9.12/openconnect-v9.12.tar.gz
 
 RUN set -ex;                                 \
   apt-get update;                            \
+  DEBIAN_FRONTEND=noninteractive             \
   apt-get install -y --no-install-recommends \
-    autoconf                                 \
     automake                                 \
     ca-certificates                          \
     gcc                                      \
-    libc6-dev                                \
-    libssl-dev                               \
+    gettext                                  \
+    libssl-dev                          \
+    # libgnutls28-dev                          \
+    liblz4-dev                               \
+    libtool                                  \
+    libxml2-dev                              \
     make                                     \
-    patch                                    \
     pkg-config                               \
-    wget;                                    \
-  mkdir openfortivpn;                        \
-  cd openfortivpn;                           \
-  wget "$URL/v$VERSION.tar.gz";              \
-  tar -xzf "v$VERSION.tar.gz"                \
+    vpnc-scripts                             \
+    wget                                     \
+    zlib1g-dev;                              \
+  mkdir openconnect;                         \
+  cd openconnect;                            \
+  wget -O openconnect.tar.gz "$URL";         \
+  tar -xzf "openconnect.tar.gz"              \
      --strip-components 1;                   \
   ./autogen.sh;                              \
-  ./configure --prefix="";                   \
-  make;
+  ./configure --prefix="/oc";                \
+  make -j $(nproc);                          \
+  make install
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN set -ex;                                 \
   apt-get update;                            \
   apt-get install -y --no-install-recommends \
     ca-certificates                          \
-    openssl                                  \
-    ppp;                                     \
-  rm -rf /var/lib/apt/lists/*;               \
-  mkdir -p /etc/openfortivpn;                \
-  touch /etc/openfortivpn/config;
+    vpnc-scripts                             \
+    openssl                              \
+    # libgnutls30                              \
+    libxml2;                                 \
+  rm -rf /var/lib/apt/lists/*;
 
-COPY --from=openfortivpn "/openfortivpn/openfortivpn" /usr/bin/openfortivpn
-ENTRYPOINT ["openfortivpn"]
+COPY --from=openconnect "/oc" /oc
+# COPY --from=openconnect "/openconnect/.libs" /usr/bin/.libs
+ENTRYPOINT ["/oc/sbin/openconnect"]
