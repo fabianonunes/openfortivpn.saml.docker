@@ -77,9 +77,19 @@ class Browser:
 
         priv = "env" if os.access("/var/run/docker.sock", os.W_OK | os.R_OK) else "sudo"
         cmd = (
-            f"/usr/bin/{priv} docker run --init --network=host --device=/dev/ppp --cap-drop=ALL "
-            f"--cap-add=DAC_OVERRIDE --cap-add=NET_ADMIN --volume /etc/resolv.conf:/etc/resolv.conf --rm "
-            f"-i {args.image} {args.host} --cookie {self.cookie} {' '.join(mass)}"
+            f"/usr/bin/{priv} docker run "
+            f"--init "
+            f"--rm "
+            f"--network=host "
+            f"--device=/dev/ppp "
+            f"--cap-drop=ALL "
+            f"--cap-add=DAC_OVERRIDE "
+            f"--cap-add=NET_ADMIN "
+            f"--volume /etc/resolv.conf:/etc/resolv.conf "
+            f"--interactive "
+            f"{args.image} {args.host} "
+            f"--cookie {self.cookie} "
+            f"{' '.join(mass)}"
         )
         return cmd.strip().split(" ")
 
