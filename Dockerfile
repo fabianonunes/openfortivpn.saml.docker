@@ -1,6 +1,6 @@
-FROM ubuntu:20.04 as openfortivpn
+FROM ubuntu:22.04 as openfortivpn
 
-ARG VERSION=1.20.0
+ARG VERSION=1.20.5
 ARG URL=https://github.com/adrienverge/openfortivpn/archive/refs/tags
 
 RUN set -ex;                                 \
@@ -25,7 +25,7 @@ RUN set -ex;                                 \
   ./configure --prefix="";                   \
   make;
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN set -ex;                                 \
   apt-get update;                            \
