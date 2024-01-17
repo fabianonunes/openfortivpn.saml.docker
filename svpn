@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--host", required=True)
 parser.add_argument("--print", action="store_true")
 parser.add_argument(
-    "--image", default="ghcr.io/fabianonunes/openfortivpn.saml.docker:0.0.8"
+    "--image", default="ghcr.io/fabianonunes/openfortivpn.saml.docker:0.2.0"
 )
 args, mass = parser.parse_known_args()
 
