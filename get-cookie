@@ -9,7 +9,7 @@ gi.require_version("WebKit2", "4.0")
 from gi.repository import Gtk, WebKit2  # noqa: E402
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--host", required=True)
+parser.add_argument("--url", required=True)
 parser.add_argument("--cookie-name", default="SVPNCOOKIE")
 args = parser.parse_args()
 
@@ -35,7 +35,7 @@ def main():
 
     web_view = WebKit2.WebView(settings=settings)
     web_view.connect("load-changed", page_changed, cookie_manager)
-    web_view.load_uri(args.host)
+    web_view.load_uri(args.url)
 
     window.add(web_view)
     window.show_all()
