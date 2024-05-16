@@ -68,9 +68,9 @@ class Browser:
         if self.cookie:
             return
         cookies = cookie_manager.get_cookies_finish(result)
-        cookie = next(filter(lambda c: c.name == "SVPNCOOKIE", cookies), None)
+        cookie = next(filter(lambda c: c.get_name() == "SVPNCOOKIE", cookies), None)
         if cookie:
-            self.cookie = f"{cookie.name}={cookie.value}"
+            self.cookie = f"{cookie.get_name()}={cookie.get_value()}"
             self.connect()
 
     def build_cmd(self):

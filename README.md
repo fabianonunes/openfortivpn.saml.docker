@@ -6,7 +6,7 @@
 - Caso sua distribuição não utilize o Gnome, instale os seguintes pacotes:
 
     ```bash
-    sudo apt install gir1.2-vte-2.91 gir1.2-webkit2-4.0
+    sudo apt install gir1.2-vte-2.91 gir1.2-webkit2-4.1
     ```
 
 ## Instalação
