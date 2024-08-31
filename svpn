@@ -90,6 +90,7 @@ class Browser:
             f"--cap-add=DAC_OVERRIDE "
             f"--cap-add=NET_ADMIN "
             f"--volume /etc/resolv.conf:/etc/resolv.conf "
+            f"--tty "
             f"--interactive "
             f"{args.image} {args.host} "
             f"--cookie {self.cookie} "
