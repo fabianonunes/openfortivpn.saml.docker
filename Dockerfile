@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as openfortivpn
+FROM ubuntu:22.04 AS openfortivpn
 
 ARG VERSION=1.21.0
 ARG URL=https://github.com/adrienverge/openfortivpn/archive/refs/tags
