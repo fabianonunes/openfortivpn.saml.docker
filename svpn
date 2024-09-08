@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import os
 import signal
 from os import path
@@ -29,6 +30,7 @@ class Browser:
     terminal = None
     web_view = None
     box = None
+    trusted_cert = None
 
     def run(self):
         Gtk.init(None)
@@ -49,6 +51,7 @@ class Browser:
             hardware_acceleration_policy=WebKit2.HardwareAccelerationPolicy.NEVER
         )
         self.web_view = WebKit2.WebView(settings=settings)
+        self.web_view.connect("load-failed-with-tls-errors", self.on_tls_errors)
         self.web_view.connect("load-changed", self.page_changed, cookie_manager)
         self.web_view.load_uri(f"https://{args.host}")
 
@@ -72,6 +75,51 @@ class Browser:
         if cookie:
             self.cookie = f"{cookie.get_name()}={cookie.get_value()}"
             self.connect()
+
+    def on_tls_errors(self, _widget, uri, certificate, errors):
+        der = certificate.get_property("certificate")
+        subject = certificate.get_property("subject_name")
+        issuer = certificate.get_property("issuer_name")
+
+        fingerprint = hashlib.sha256(der).hexdigest()
+        reason = errors.first_value_nick
+
+        if self.confirm_bad_certificate(uri, reason, subject, issuer, fingerprint):
+            global mass
+            mass += ["--trusted-cert", fingerprint]
+
+            ctx = self.web_view.get_context()
+            ctx.allow_tls_certificate_for_host(certificate, args.host)
+            self.web_view.load_uri(uri)
+            return True
+        return False
+
+    def confirm_bad_certificate(self, host, reason, subject, issuer, fingerprint):
+        dialog = Gtk.MessageDialog(
+            parent=None,
+            buttons=Gtk.ButtonsType.YES_NO,
+            image=None,
+            title="Certificado inválido",
+        )
+
+        for lable in dialog.get_message_area().get_children():
+            lable.set_selectable(True)
+
+        dialog.format_secondary_markup(
+            "Você está se conectando a um servidor não confiável, o que "
+            "pode colocar suas credenciais em risco.\n\n"
+            "<span foreground='red' weight='bold'>Gostaria de se conectar a este servidor?</span>\n\n"
+            f"<b>URL</b>\n{host}\n\n"
+            f"<b>Motivo</b>\n{reason}\n\n"
+            f"<b>Subject</b>\n{subject}\n\n"
+            f"<b>Issuer</b>\n{issuer}\n\n"
+            f"<b>SHA-256 fingerprint</b>\n{fingerprint}"
+        )
+
+        response = dialog.run()
+        dialog.destroy()
+
+        return response == Gtk.ResponseType.YES
 
     def build_cmd(self):
         if args.print:
