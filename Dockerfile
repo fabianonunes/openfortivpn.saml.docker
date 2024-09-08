@@ -31,6 +31,7 @@ RUN set -ex;                                 \
   apt-get update;                            \
   apt-get install -y --no-install-recommends \
     ca-certificates                          \
+    gnutls-bin                               \
     openssl                                  \
     ppp;                                     \
   rm -rf /var/lib/apt/lists/*;               \
@@ -38,4 +39,6 @@ RUN set -ex;                                 \
   touch /etc/openfortivpn/config;
 
 COPY --from=openfortivpn "/openfortivpn/openfortivpn" /usr/bin/openfortivpn
-ENTRYPOINT ["openfortivpn"]
+
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]
