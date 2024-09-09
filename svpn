@@ -6,6 +6,8 @@ import signal
 from os import path
 
 import gi
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 
 gi.require_version("Gtk", "3.0")
 try:
@@ -78,8 +80,9 @@ class Browser:
 
     def on_tls_errors(self, _widget, uri, certificate, errors):
         der = certificate.get_property("certificate")
-        subject = certificate.get_property("subject_name")
-        issuer = certificate.get_property("issuer_name")
+        cert_x509 = x509.load_der_x509_certificate(der, default_backend())
+        subject = cert_x509.subject.rfc4514_string()
+        issuer = cert_x509.issuer.rfc4514_string()
 
         fingerprint = hashlib.sha256(der).hexdigest()
         reason = errors.first_value_nick
