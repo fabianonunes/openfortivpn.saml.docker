@@ -55,8 +55,8 @@ def page_changed(web_view, event, cookie_manager):
 
 def on_receive_cookie(cookie_manager, result):
     for cookie in cookie_manager.get_cookies_finish(result):
-        if cookie.name == args.cookie_name:
-            print(f"{cookie.name}={cookie.value}")
+        if cookie.get_name() == args.cookie_name:
+            print(f"{cookie.get_name()}={cookie.get_value()}")
             on_quit()
 
 
