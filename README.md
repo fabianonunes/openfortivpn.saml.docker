@@ -1,5 +1,8 @@
 # FortiClient VPN no Linux com autenticação de dois fatores
 
+> [!IMPORTANT]
+> A partir da versão 1.23.0, o openfortivpn suporta autenticação via SAML nativamente.
+
 ## Requisitos
 
 - Docker
