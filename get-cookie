@@ -24,13 +24,8 @@ def main():
     window.connect("delete-event", on_quit)
     window.resize(500, 570)
 
-    cookie_storage_path = path.expanduser("~/.cache/openfortivpn.cookies")
-
     ctx = WebKit2.WebContext.get_default()
     cookie_manager = ctx.get_cookie_manager()
-    cookie_manager.set_persistent_storage(
-        cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
-    )
 
     # hardware acceleration triggers strange segfaults in webkit on systems running Wayland
     settings = WebKit2.Settings(

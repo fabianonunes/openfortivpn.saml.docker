@@ -41,12 +41,7 @@ class Browser:
         self.window.resize(500, 570)
 
         ctx = WebKit2.WebContext.get_default()
-        cookie_storage_path = path.expanduser("~/.cache/openfortivpn.cookies")
-
         cookie_manager = ctx.get_cookie_manager()
-        cookie_manager.set_persistent_storage(
-            cookie_storage_path, WebKit2.CookiePersistentStorage.TEXT
-        )
 
         # aceleração de hardware causa segfaults do webkit qdo rodando no wayland
         settings = WebKit2.Settings(
