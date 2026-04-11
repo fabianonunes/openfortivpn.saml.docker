@@ -94,10 +94,8 @@ class Browser:
             try:
                 text = widget.get_text_format(Vte.Format.TEXT)
             except AttributeError:
-                result = widget.get_text(lambda *a: True)
-                text = result[0] if isinstance(result, tuple) else result
-            except Exception:
-                return
+                result = widget.get_text(None)
+                text = result[0]
             if text and "Listening for SAML" in text:
                 self._saml_opened = True
                 Gtk.show_uri_on_window(self.window, saml_url, 0)
