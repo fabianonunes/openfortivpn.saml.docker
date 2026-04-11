@@ -83,8 +83,6 @@ class Browser:
         gi.require_version("Vte", "2.91")
         from gi.repository import Vte
 
-        self._opened_urls = set()
-
         self.terminal = Vte.Terminal()
 
         saml_url = f"https://{args.host}/remote/saml/start?redirect=1"
@@ -95,6 +93,9 @@ class Browser:
                 return
             try:
                 text = widget.get_text_format(Vte.Format.TEXT)
+            except AttributeError:
+                result = widget.get_text(lambda *a: True)
+                text = result[0] if isinstance(result, tuple) else result
             except Exception:
                 return
             if text and "Listening for SAML" in text:
