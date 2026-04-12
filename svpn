@@ -6,7 +6,7 @@ import signal
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk
+from gi.repository import Gtk  # noqa: E402
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--host", required=True)
@@ -18,39 +18,40 @@ args, mass = parser.parse_known_args()
 
 class Browser:
     window = None
-    cookie = None
     terminal = None
-    box = None
-    trusted_cert = None
 
     def run(self):
         Gtk.init(None)
         self.window = Gtk.Window(title="VPN", icon_name="network-vpn")
         self.window.connect("delete-event", self.quit)
         self.window.resize(500, 570)
+        self.window.add(self.build_vte())
         self.window.show_all()
-        self.connect()
+        self.terminal.grab_focus()
         return self
 
     def build_cmd(self):
         priv = "env" if os.access("/var/run/docker.sock", os.W_OK | os.R_OK) else "sudo"
-        cmd = (
-            f"/usr/bin/{priv} docker run "
-            f"--init "
-            f"--rm "
-            f"--network=host "
-            f"--device=/dev/ppp "
-            f"--cap-drop=ALL "
-            f"--cap-add=DAC_OVERRIDE "
-            f"--cap-add=NET_ADMIN "
-            f"--volume /etc/resolv.conf:/etc/resolv.conf "
-            f"--tty "
-            f"--interactive "
-            f"{args.image} {args.host} "
-            f"--saml-login "
-            f"{' '.join(mass)}"
-        )
-        return cmd.strip().split(" ")
+        return [
+            f"/usr/bin/{priv}",
+            "docker",
+            "run",
+            "--init",
+            "--rm",
+            "--network=host",
+            "--device=/dev/ppp",
+            "--cap-drop=ALL",
+            "--cap-add=DAC_OVERRIDE",
+            "--cap-add=NET_ADMIN",
+            "--volume",
+            "/etc/resolv.conf:/etc/resolv.conf",
+            "--tty",
+            "--interactive",
+            args.image,
+            args.host,
+            "--saml-login",
+            *mass,
+        ]
 
     def quit(self, _a=None, _b=None):
         try:
@@ -63,21 +64,10 @@ class Browser:
             print(err)
             exit(1)
 
-    def connect(self):
-        scroller = self.build_vte()
-        self.window.add(scroller)
-        self.window.show_all()
-        self.terminal.grab_focus()
-
     def stop_container(self, _a=None, _b=None):
-        if not self.terminal:
-            return
-        # o openfortivpn não reage ao SIGHUP propagado pelo Vte ao sair
-        try:
+        if self.terminal:
+            # o openfortivpn não reage ao SIGHUP propagado pelo Vte ao sair
             self.terminal.feed_child(b"\x03")  # CTRL+C
-        except:  # noqa
-            # Ubuntu 18.04 ainda usa vte < 0.59.91
-            self.terminal.feed_child("\x03", -1)  # noqa
 
     def build_vte(self):
         gi.require_version("Vte", "2.91")
@@ -101,7 +91,6 @@ class Browser:
                 Gtk.show_uri_on_window(self.window, saml_url, 0)
 
         self.terminal.connect("contents-changed", on_contents_changed)
-
         self.terminal.spawn_async(
             Vte.PtyFlags.DEFAULT,  # pty_flags
             os.environ["HOME"],  # working_directory
