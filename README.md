@@ -39,6 +39,23 @@ E só! 🤓
 
 <!-- markdownlint-disable no-inline-html -->
 <details>
+<summary>Eu tenho o openfortivpn >= 1.23, mas quero usar a janela Gtk mesmo assim. Como faço?</summary>
+
+Ajuste `Browser.build_cmd` para retornar apenas o comando desejado. Por exemplo:
+
+```python
+    def build_cmd(self):
+        return [
+            "sudo",
+            "openfortivpn",
+            args.host,
+            "--saml-login",
+            *mass,
+        ]
+```
+</details>
+
+<details>
 <summary>Por que utilizar uma imagem Docker?</summary>
 
 O suporte à autenticação com cookies via linha de comando só foi adicionado
