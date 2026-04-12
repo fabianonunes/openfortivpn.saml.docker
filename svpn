@@ -103,8 +103,8 @@ class Browser:
             None,  # child_setup
             None,  # child_setup_data - não documentado
             -1,  # timeout
-            None,     # cancellable
-            on_spawn, # callback
+            None,  # cancellable
+            on_spawn,  # callback
         )
 
         scroller = Gtk.ScrolledWindow()
