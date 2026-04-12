@@ -7,8 +7,9 @@ RUN set -ex;                                 \
     gnutls-bin                               \
     openfortivpn                             \
     openssl                                  \
+    pid1                                     \
     ppp;                                     \
   rm -rf /var/lib/apt/lists/*;
 
 COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT [ "/entrypoint.sh" ]
+ENTRYPOINT [ "pid1", "/entrypoint.sh" ]

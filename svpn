@@ -36,7 +36,6 @@ class Browser:
             f"/usr/bin/{priv}",
             "docker",
             "run",
-            "--init",
             "--rm",
             "--network=host",
             "--device=/dev/ppp",
