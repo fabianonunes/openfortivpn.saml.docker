@@ -19,6 +19,7 @@ args, mass = parser.parse_known_args()
 class Browser:
     window = None
     terminal = None
+    child_pid = None
 
     def run(self):
         Gtk.init(None)
@@ -64,9 +65,9 @@ class Browser:
             exit(1)
 
     def stop_container(self, _a=None, _b=None):
-        if self.terminal:
+        if self.child_pid:
             # o openfortivpn não reage ao SIGHUP propagado pelo Vte ao sair
-            self.terminal.feed_child(b"\x03")  # CTRL+C
+            os.kill(self.child_pid, signal.SIGTERM)
 
     def build_vte(self):
         gi.require_version("Vte", "2.91")
@@ -89,6 +90,9 @@ class Browser:
                 self._saml_opened = True
                 Gtk.show_uri_on_window(self.window, saml_url, 0)
 
+        def on_spawn(_terminal, pid, _error):
+            self.child_pid = pid
+
         self.terminal.connect("contents-changed", on_contents_changed)
         self.terminal.spawn_async(
             Vte.PtyFlags.DEFAULT,  # pty_flags
@@ -99,6 +103,8 @@ class Browser:
             None,  # child_setup
             None,  # child_setup_data - não documentado
             -1,  # timeout
+            None,     # cancellable
+            on_spawn, # callback
         )
 
         scroller = Gtk.ScrolledWindow()
