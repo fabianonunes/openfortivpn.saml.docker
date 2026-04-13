@@ -87,12 +87,12 @@ class App:
     def on_spawn(self, _term, pid, _error):
         self.child_pid = pid
 
-    def stop_vpn(self, _a=None, _b=None):
+    def stop_vpn(self):
         if self.child_pid:
             # o openfortivpn não reage ao SIGHUP propagado pelo Vte ao sair
             os.kill(self.child_pid, signal.SIGTERM)
 
-    def quit(self, _a=None, _b=None):
+    def quit(self, _win=None, _event=None):
         try:
             self.stop_vpn()
             Gtk.main_quit()
