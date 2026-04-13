@@ -6,29 +6,26 @@ import signal
 import gi
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk  # noqa: E402
+gi.require_version("Vte", "2.91")
+from gi.repository import Gtk, Vte  # noqa: E402
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--host", required=True)
-parser.add_argument(
-    "--image", default="ghcr.io/fabianonunes/openfortivpn.saml.docker:0.6.0"
-)
+parser.add_argument("--image", default="ghcr.io/fabianonunes/openfortivpn.saml.docker:0.6.0")
 args, mass = parser.parse_known_args()
 
 
-class Browser:
+class App:
     window = None
-    terminal = None
     child_pid = None
+    saml_opened = False
 
     def run(self):
-        Gtk.init(None)
-        self.window = Gtk.Window(title="VPN", icon_name="network-vpn")
+        self.window = Gtk.Window(title=f"openfortivpn:{args.host}", icon_name="network-vpn")
         self.window.connect("delete-event", self.quit)
-        self.window.resize(500, 570)
-        self.window.add(self.build_vte())
+        self.window.set_default_size(640, 420)
+        self.window.add(self.build_terminal())
         self.window.show_all()
-        self.terminal.grab_focus()
         return self
 
     def build_cmd(self):
@@ -55,50 +52,43 @@ class Browser:
 
     def quit(self, _a=None, _b=None):
         try:
-            self.stop_container()
-            self.window.destroy()
+            self.stop_vpn()
             Gtk.main_quit()
-            while Gtk.events_pending():
-                Gtk.main_iteration()
         except Exception as err:
             print(err)
             exit(1)
 
-    def stop_container(self, _a=None, _b=None):
+    def stop_vpn(self, _a=None, _b=None):
         if self.child_pid:
             # o openfortivpn não reage ao SIGHUP propagado pelo Vte ao sair
             os.kill(self.child_pid, signal.SIGTERM)
 
-    def build_vte(self):
-        gi.require_version("Vte", "2.91")
-        from gi.repository import Vte
+    def build_terminal(self):
 
-        self.terminal = Vte.Terminal()
-
-        saml_url = f"https://{args.host}/remote/saml/start?redirect=1"
-        self._saml_opened = False
-
-        def on_contents_changed(widget):
-            if self._saml_opened:
+        def on_contents_changed(term):
+            if self.saml_opened:
                 return
+
             try:
-                text = widget.get_text_format(Vte.Format.TEXT)
+                text = term.get_text_format(Vte.Format.TEXT)
             except AttributeError:
-                result = widget.get_text(None)
-                text = result[0]
+                text, *_ = term.get_text(None)
+
             if text and "Listening for SAML" in text:
-                self._saml_opened = True
+                self.saml_opened = True
+                saml_url = f"https://{args.host}/remote/saml/start?redirect=1"
                 Gtk.show_uri_on_window(self.window, saml_url, 0)
 
-        def on_spawn(_terminal, pid, _error):
+        def on_spawn(_term, pid, _error):
             self.child_pid = pid
 
-        self.terminal.connect("contents-changed", on_contents_changed)
-        self.terminal.spawn_async(
+        terminal = Vte.Terminal()
+        terminal.connect("contents-changed", on_contents_changed)
+        terminal.spawn_async(
             Vte.PtyFlags.DEFAULT,  # pty_flags
-            os.environ["HOME"],  # working_directory
+            None,  # working dir (herda o atual)
             self.build_cmd(),  # argv
-            [],  # envv
+            [],  # env
             0,  # spawn_flags: GLib.SpawnFlags.DEFAULT
             None,  # child_setup
             None,  # child_setup_data - não documentado
@@ -108,11 +98,15 @@ class Browser:
         )
 
         scroller = Gtk.ScrolledWindow()
-        scroller.add(self.terminal)
+        scroller.add(terminal)
         return scroller
 
 
 if __name__ == "__main__":
-    b = Browser().run()
+    if os.geteuid() == 0:
+        # evita abrir o browser como root
+        raise SystemExit("erro: não execute este script como root")
+
+    b = App().run()
     signal.signal(signal.SIGINT, b.quit)
     Gtk.main()
