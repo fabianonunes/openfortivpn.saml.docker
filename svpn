@@ -60,6 +60,7 @@ class App:
             "--cap-drop=ALL",
             "--cap-add=DAC_OVERRIDE",
             "--cap-add=NET_ADMIN",
+            "--cap-add=SYS_MODULE",
             "--volume",
             "/etc/resolv.conf:/etc/resolv.conf",
             "--tty",
